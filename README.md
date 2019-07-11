@@ -4,6 +4,8 @@ Create Service Bus in Azure.
 
 ## Example Usage
 
+### Topics
+
 ```hcl
 resource "azurerm_resource_group" "main" {
   name     = "example-resources"
@@ -27,6 +29,70 @@ module "service_bus" {
           rights = ["listen", "send"]
         }
       ]
+    }
+  ]
+}
+```
+
+### Queues
+
+```hcl
+resource "azurerm_resource_group" "main" {
+  name     = "example-resources"
+  location = "westeurope"
+}
+
+module "service_bus" {
+  source = "innovationnorway/service-bus/azurerm"
+
+  name = "example"
+
+  resource_group_name = azurerm_resource_group.main.name
+
+  queues = [
+    {
+      name = "example"
+      authorization_rules = [
+        {
+          name   = "example"
+          rights = ["listen", "send"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Forwarding (Topic subscriptions)
+
+```hcl
+resource "azurerm_resource_group" "main" {
+  name     = "example-resources"
+  location = "westeurope"
+}
+
+module "service_bus" {
+  source = "innovationnorway/service-bus/azurerm"
+
+  name = "example"
+
+  resource_group_name = azurerm_resource_group.main.name
+
+  topics = [
+    {
+      name = "source"
+      enable_partitioning = true
+      subscriptions = [
+        {
+          name = "example"
+          forward_to = "destination"
+          max_delivery_count = 1
+        }
+      ]
+    },
+    {
+      name = "destination"
+      enable_partitioning = true
     }
   ]
 }

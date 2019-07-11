@@ -75,6 +75,8 @@ resource "azurerm_servicebus_subscription" "main" {
   forward_to                = local.topic_subscriptions[count.index].forward_to
 
   dead_lettering_on_message_expiration = local.topic_subscriptions[count.index].enable_dead_lettering_on_message_expiration
+
+  depends_on = [azurerm_servicebus_topic.main]
 }
 
 resource "azurerm_servicebus_subscription_rule" "main" {
@@ -88,6 +90,8 @@ resource "azurerm_servicebus_subscription_rule" "main" {
   filter_type         = local.topic_subscription_rules[count.index].sql_filter != "" ? "SqlFilter" : null
   sql_filter          = local.topic_subscription_rules[count.index].sql_filter
   action              = local.topic_subscription_rules[count.index].action
+
+  depends_on = [azurerm_servicebus_subscription.main]
 }
 
 resource "azurerm_servicebus_queue" "main" {
