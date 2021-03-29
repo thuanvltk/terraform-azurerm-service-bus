@@ -2,12 +2,6 @@ data "azurerm_resource_group" "main" {
   name = var.resource_group_name
 }
 
-resource "random_string" "string" {
-  length  = 15
-  special = false
-  upper   = false
-}
-
 resource "azurerm_servicebus_namespace" "main" {
   name                = var.name
   location            = data.azurerm_resource_group.main.location
