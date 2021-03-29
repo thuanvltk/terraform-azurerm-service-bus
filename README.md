@@ -13,7 +13,7 @@ resource "azurerm_resource_group" "main" {
 }
 
 module "service_bus" {
-  source = "innovationnorway/service-bus/azurerm"
+  source = "thuanvltk/service-bus/azurerm"
 
   name = "example"
 
