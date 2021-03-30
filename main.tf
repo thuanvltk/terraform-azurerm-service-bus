@@ -12,16 +12,15 @@ resource "azurerm_servicebus_namespace" "main" {
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "main" {
-  #for_each = local.authorization_rules
-  for_each = { for authorization_rules in local.authorization_rules : authorization_rules.name => authorization_rules }
+  count = length(local.authorization_rules)
 
-  name                = each.value.name
+  name                = local.authorization_rules[count.index].name
   namespace_name      = azurerm_servicebus_namespace.main.name
   resource_group_name = data.azurerm_resource_group.main.name
 
-  listen = contains(each.value.rights, "listen") ? true : false
-  send   = contains(each.value.rights, "send") ? true : false
-  manage = contains(each.value.rights, "manage") ? true : false
+  listen = contains(local.authorization_rules[count.index].rights, "listen") ? true : false
+  send   = contains(local.authorization_rules[count.index].rights, "send") ? true : false
+  manage = contains(local.authorization_rules[count.index].rights, "manage") ? true : false
 }
 
 resource "azurerm_servicebus_topic" "main" {
