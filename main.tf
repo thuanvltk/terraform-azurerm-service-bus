@@ -69,6 +69,7 @@ resource "azurerm_servicebus_subscription" "main" {
   namespace_name      = azurerm_servicebus_namespace.main.name
   topic_name          = each.value.topic_name
 
+  status                    = each.value.status
   max_delivery_count        = each.value.max_delivery_count
   auto_delete_on_idle       = each.value.auto_delete_on_idle
   default_message_ttl       = each.value.default_message_ttl

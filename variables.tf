@@ -89,6 +89,7 @@ locals {
       for subscription in topic.subscriptions :
       merge({
         name                      = ""
+        status                    = "Active"
         auto_delete_on_idle       = null
         default_message_ttl       = null
         lock_duration             = null
