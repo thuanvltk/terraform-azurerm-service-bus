@@ -24,7 +24,6 @@ resource "azurerm_servicebus_namespace_authorization_rule" "main" {
 }
 
 resource "azurerm_servicebus_topic" "main" {
-  #for_each = local.topics
   for_each = { for topics in local.topics : topics.name => topics }
 
   name                = each.value.name
@@ -45,7 +44,6 @@ resource "azurerm_servicebus_topic" "main" {
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "main" {
-  #for_each = local.topic_authorization_rules
   for_each = { for topic_authorization_rules in local.topic_authorization_rules : join("-", [topic_authorization_rules.topic_name, topic_authorization_rules.name]) => topic_authorization_rules }
 
   name                = each.value.name
@@ -61,7 +59,6 @@ resource "azurerm_servicebus_topic_authorization_rule" "main" {
 }
 
 resource "azurerm_servicebus_subscription" "main" {
-  #for_each = local.topic_subscriptions
   for_each = { for topic_subscriptions in local.topic_subscriptions : join("-", [topic_subscriptions.topic_name, topic_subscriptions.name]) => topic_subscriptions }
 
   name                = each.value.name
@@ -84,9 +81,7 @@ resource "azurerm_servicebus_subscription" "main" {
 }
 
 resource "azurerm_servicebus_subscription_rule" "main" {
-  #for_each = local.topic_subscription_rules
   for_each = { for topic_subscription_rules in local.topic_subscription_rules : join("-", [topic_subscription_rules.topic_name, topic_subscription_rules.subscription_name, topic_subscription_rules.name]) => topic_subscription_rules }
-
 
   name                = each.value.name
   resource_group_name = data.azurerm_resource_group.main.name
@@ -98,4 +93,42 @@ resource "azurerm_servicebus_subscription_rule" "main" {
   action              = each.value.action
 
   depends_on = [azurerm_servicebus_subscription.main]
+}
+
+resource "azurerm_servicebus_queue" "main" {
+  # for_each = { for queue in local.queues : queue.name => queue }
+  count = length(local.queues)
+  
+  name                = local.queues[count.index].name
+  resource_group_name = data.azurerm_resource_group.main.name
+  namespace_name      = azurerm_servicebus_namespace.main.name
+
+  auto_delete_on_idle                  = local.queues[count.index].auto_delete_on_idle
+  default_message_ttl                  = local.queues[count.index].default_message_ttl
+  enable_express                       = local.queues[count.index].enable_express
+  enable_partitioning                  = local.queues[count.index].enable_partitioning
+  lock_duration                        = local.queues[count.index].lock_duration
+  max_size_in_megabytes                = local.queues[count.index].max_size
+  requires_duplicate_detection         = local.queues[count.index].enable_duplicate_detection
+  requires_session                     = local.queues[count.index].enable_session
+  dead_lettering_on_message_expiration = local.queues[count.index].enable_dead_lettering_on_message_expiration
+  max_delivery_count                   = local.queues[count.index].max_delivery_count
+
+  duplicate_detection_history_time_window = local.queues[count.index].duplicate_detection_history_time_window
+}
+
+resource "azurerm_servicebus_queue_authorization_rule" "main" {
+  # for_each = { for queue_authorization_rule in local.queue_authorization_rules : join("-", [queue_authorization_rule.queue_name, queue_authorization_rule.name]) => queue_authorization_rule }
+  count = length(local.queue_authorization_rules)
+
+  name                = local.queue_authorization_rules[count.index].name
+  resource_group_name = data.azurerm_resource_group.main.name
+  namespace_name      = azurerm_servicebus_namespace.main.name
+  queue_name          = local.queue_authorization_rules[count.index].queue_name
+
+  listen = contains(local.queue_authorization_rules[count.index].rights, "listen") ? true : false
+  send   = contains(local.queue_authorization_rules[count.index].rights, "send") ? true : false
+  manage = contains(local.queue_authorization_rules[count.index].rights, "manage") ? true : false
+
+  depends_on = [azurerm_servicebus_queue.main]
 }
