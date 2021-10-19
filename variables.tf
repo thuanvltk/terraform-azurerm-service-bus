@@ -32,6 +32,12 @@ variable "authorization_rules" {
   description = "List of namespace authorization rules."
 }
 
+variable "queues" {
+  type        = any
+  default     = []
+  description = "List of queues."
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
@@ -115,6 +121,36 @@ locals {
         }, rule, {
         topic_name        = subscription.topic_name
         subscription_name = subscription.name
+      })
+    ]
+  ])
+
+  queues = [
+    for queue in var.queues : merge({
+      name                       = ""
+      auto_delete_on_idle        = null
+      default_message_ttl        = null
+      enable_express             = false
+      enable_partitioning        = false
+      lock_duration              = null
+      max_size                   = null
+      enable_duplicate_detection = false
+      enable_session             = false
+      max_delivery_count         = 10
+      authorization_rules        = []
+
+      enable_dead_lettering_on_message_expiration = false
+      duplicate_detection_history_time_window     = null
+    }, queue)
+  ]
+
+  queue_authorization_rules = flatten([
+    for queue in local.queues : [
+      for rule in queue.authorization_rules : merge({
+        name   = ""
+        rights = []
+        }, rule, {
+        queue_name = queue.name
       })
     ]
   ])
